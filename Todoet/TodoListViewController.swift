@@ -12,8 +12,14 @@ class TodoListViewController: UITableViewController {
 
     var todos = ["First", "Second", "Third"]
     
+    let defaults = UserDefaults.standard
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        if let items = defaults.array(forKey: "TodoList") as? Array<String> {
+            todos = items
+        }
     }
 
     // MARK - Table View DataSource Methods
@@ -52,6 +58,9 @@ class TodoListViewController: UITableViewController {
             
             if(localTextField.text != "") {
                 self.todos.append(localTextField.text!)
+                
+                self.defaults.setValue(self.todos, forKey: "TodoList")
+                
                 self.tableView.reloadData()
             }
         }
@@ -64,6 +73,7 @@ class TodoListViewController: UITableViewController {
         
         alert.addAction(addAction)
         alert.addAction(cancelAction)
+        
         present(alert, animated: true, completion: nil)
     }
     
