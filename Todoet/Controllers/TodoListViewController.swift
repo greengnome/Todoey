@@ -11,19 +11,12 @@ import UIKit
 class TodoListViewController: UITableViewController {
 
     var todos = [TodoItem]()
-    
-    let defaults = UserDefaults.standard
+    var dataPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("TodoItem.plist")
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        todos.append(TodoItem(text: "First"))
-        todos.append(TodoItem(text: "Second"))
-        todos.append(TodoItem(text: "Third"))
-        
-        if let items = defaults.array(forKey: "Todos") as? [TodoItem] {
-            todos = items
-        }
+        loadTodos()
     }
 
     // MARK - Table View DataSource Methods
@@ -46,7 +39,10 @@ class TodoListViewController: UITableViewController {
         let selectedItem = todos[indexPath.row]
         selectedItem.done = !selectedItem.done
         
+        saveTodos()
+        
         tableView.reloadData()
+        
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
@@ -61,7 +57,7 @@ class TodoListViewController: UITableViewController {
                 let newTodoItem = TodoItem(text: localTextField.text!)
                 self.todos.append(newTodoItem)
                 
-                self.defaults.set(self.todos, forKey: "Todos")
+                self.saveTodos()
                 
                 self.tableView.reloadData()
             }
@@ -79,6 +75,30 @@ class TodoListViewController: UITableViewController {
         present(alert, animated: true, completion: nil)
     }
     
-
+    // MARK - Model manipiulation methods
+    func saveTodos() {
+        let encoder = PropertyListEncoder()
+        do {
+            let data = try encoder.encode(todos)
+            try data.write(to: dataPath!)
+        } catch {
+            print("Error in data file path \(error)")
+        }
+    }
+    
+    func loadTodos() {
+        do{
+            if let data = try? Data(contentsOf: dataPath!) {
+                let decoder = PropertyListDecoder()
+                
+                do {
+                    todos = try decoder.decode([TodoItem].self, from: data)
+                } catch {
+                    print("Error in data file path \(error)")
+                }
+            }
+        }
+    }
+    
 }
 
